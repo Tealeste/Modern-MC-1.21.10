@@ -5,8 +5,8 @@ plugins {
 publishing {
     repositories {
         maven {
-            name 'IzzelAliz'
-            url 'https://maven.izzel.io/releases'
+            name = 'IzzelAliz'
+            url = uri('https://maven.izzel.io/releases')
             credentials {
                 username = project.findProperty("maven_user")
                 password = project.findProperty("izzel_maven_token")
@@ -30,8 +30,8 @@ allprojects {
         }
         mavenLocal()
         ivy {
-            name 'MojangLibraries'
-            url 'https://libraries.minecraft.net/'
+            name = 'MojangLibraries'
+            url = uri('https://libraries.minecraft.net/')
             patternLayout {
                 artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
             }

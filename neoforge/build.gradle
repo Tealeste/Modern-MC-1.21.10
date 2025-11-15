@@ -1,4 +1,5 @@
 import net.fabricmc.loom.task.RemapJarTask
+import org.gradle.api.plugins.JavaPluginExtension
 
 plugins {
     id 'dev.architectury.loom' version '1.11-SNAPSHOT'
@@ -21,17 +22,19 @@ loom {
 repositories {
     maven {
         // declaring in settings.gradle doesn't work
-        url 'https://maven.neoforged.net/releases/'
+        url = uri('https://maven.neoforged.net/releases/')
     }
     maven {
-        url 'https://maven.parchmentmc.org/'
+        url = uri('https://maven.parchmentmc.org/')
         content {
             includeGroup 'org.parchmentmc.data'
         }
     }
-    maven { url 'https://modmaven.dev/' }
     maven {
-        url 'https://maven.izzel.io/releases/'
+        url = uri('https://modmaven.dev/')
+    }
+    maven {
+        url = uri('https://maven.izzel.io/releases/')
     }
     mavenCentral()
     flatDir {
@@ -87,23 +90,25 @@ dependencies {
     include "com.vladsch.flexmark:flexmark-util-visitor:${flexmark_version}"*/
     include "org.commonmark:commonmark:${commonmark_version}"
 
-    shadow ':ModernUI-Fonts-5.0'
+shadow ':ModernUI-Fonts-5.0'
 }
 
+def commonMain = project(":common").extensions.getByType(JavaPluginExtension).sourceSets.named("main").get()
+
 tasks.withType(JavaCompile).configureEach {
-    source(project(":common").sourceSets.main.allSource)
+    source(commonMain.allSource)
 }
 
 tasks.withType(Javadoc).configureEach {
-    source(project(":common").sourceSets.main.allJava)
+    source(commonMain.allJava)
 }
 
 sourcesJar {
-    from project(":common").sourceSets.main.allSource
+    from commonMain.allSource
 }
 
 tasks.withType(ProcessResources).configureEach {
-    from project(":common").sourceSets.main.resources
+    from commonMain.resources
 }
 
 shadowJar {
@@ -191,7 +196,7 @@ publishing {
             }
             artifact(sourcesJar.archiveFile) {
                 builtBy build
-                classifier 'sources'
+                classifier = 'sources'
             }
             artifactId = project.name
             groupId = project.group

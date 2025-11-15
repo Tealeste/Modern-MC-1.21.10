@@ -1,4 +1,5 @@
 import net.fabricmc.loom.task.RemapJarTask
+import org.gradle.api.plugins.JavaPluginExtension
 
 plugins {
     id 'dev.architectury.loom' version '1.11-SNAPSHOT'
@@ -33,20 +34,20 @@ loom {
 
 repositories {
     maven {
-        name "Jared's maven"
-        url "https://maven.blamejared.com/"
+        name = "Jared's maven"
+        url = uri('https://maven.blamejared.com/')
         content {
             includeGroup 'mezz.jei'
         }
     }
     maven {
-        url 'https://maven.parchmentmc.org/'
+        url = uri('https://maven.parchmentmc.org/')
         content {
             includeGroup 'org.parchmentmc.data'
         }
     }
     maven {
-        url 'https://maven.izzel.io/releases/'
+        url = uri('https://maven.izzel.io/releases/')
     }
     mavenCentral()
     flatDir {
@@ -116,7 +117,7 @@ dependencies {
 
     //shadow "io.reactivex.rxjava3:rxjava:${rxjava_version}"
 
-    shadow ':ModernUI-Fonts-5.0'
+shadow ':ModernUI-Fonts-5.0'
 
     /*implementation('org.apache.maven:maven-artifact') {
         version {
@@ -132,20 +133,22 @@ dependencies {
     }*/
 }
 
+def commonMain = project(":common").extensions.getByType(JavaPluginExtension).sourceSets.named("main").get()
+
 tasks.withType(JavaCompile).configureEach {
-    source(project(":common").sourceSets.main.allSource)
+    source(commonMain.allSource)
 }
 
 tasks.withType(Javadoc).configureEach {
-    source(project(":common").sourceSets.main.allJava)
+    source(commonMain.allJava)
 }
 
 sourcesJar {
-    from project(":common").sourceSets.main.allSource
+    from commonMain.allSource
 }
 
 tasks.withType(ProcessResources).configureEach {
-    from project(":common").sourceSets.main.resources
+    from commonMain.resources
 }
 
 shadowJar {
@@ -233,7 +236,7 @@ publishing {
             }
             artifact(sourcesJar.archiveFile) {
                 builtBy build
-                classifier 'sources'
+                classifier = 'sources'
             }
             artifactId = project.name
             groupId = project.group
