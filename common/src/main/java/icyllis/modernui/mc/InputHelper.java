@@ -2,7 +2,9 @@ package icyllis.modernui.mc;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Window;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Replacement helpers for the legacy {@code Screen.has*Down()} queries that were
@@ -14,6 +16,9 @@ public final class InputHelper {
     }
 
     public static boolean isControlDown() {
+        if (isRunningOnMac()) {
+            return isKeyDown(GLFW.GLFW_KEY_LEFT_SUPER) || isKeyDown(GLFW.GLFW_KEY_RIGHT_SUPER);
+        }
         return isKeyDown(InputConstants.KEY_LCONTROL) || isKeyDown(InputConstants.KEY_RCONTROL);
     }
 
@@ -32,5 +37,9 @@ public final class InputHelper {
         }
         Window window = minecraft.getWindow();
         return window != null && InputConstants.isKeyDown(window, key);
+    }
+
+    private static boolean isRunningOnMac() {
+        return Util.getPlatform() == Util.OS.OSX;
     }
 }
