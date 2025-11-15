@@ -1,16 +1,34 @@
-Changelogs
-===
-### Modern UI 3.12.0.4 (3.12.0.3, 3.12.0.2, 3.12.0.1)
-Changes from
-* 3.11.1.11 → 3.12.0.4 for Minecraft 1.21.6-1.21.8
-* 3.11.1.11 → 3.12.0.3 for Minecraft 1.21.4
-* 3.11.1.9 → 3.12.0.2 for Minecraft 1.21-1.21.1
-* 3.11.1.6 → 3.12.0.1 for Minecraft 1.20-1.20.1
-#### NeoForge Extension 1.21.8 (1.21.4, 1.21.1)
+# Changelog
+All notable updates to Modern UI for Minecraft are tracked here. The current release line is ModernUI **3.12.0.x**.
+
+## Modern UI 3.12.0.4 (3.12.0.3, 3.12.0.2, 3.12.0.1)
+### Minecraft 1.21.10 refresh
+- Ported the entire stack to Minecraft 1.21.10, including Forge 60.0.17 and NeoForge 21.10.49-beta, and refreshed the Fabric metadata to match the new protocol.
+- Added `InputHelper` plus mixin updates so ModernUI no longer depends on the removed `Screen.has*Down()` helpers when detecting Ctrl/Shift/Alt for shortcuts, zooming, and scrolling.
+- Reworked the blur/volume hook so focus-based fades run through `Options#getFinalSoundSourceVolume`, ensuring sound multipliers survive the new audio pipeline and no longer touch the sound manager directly.
+- Updated `FontResourceManager`, `TextLayoutEngine`, and the font manager mixin to the 1.21.10 `SharedState` reload API while introducing `FontDescriptions` to map the new vanilla font selectors; the legacy `StandardFontSet` bridge was removed in favour of the upstream implementation.
+- Continued text-rendering cleanup for the new release: layout keys carry less redundant state, render-state mixins got the new refresh logic, and font fallbacks behave consistently when switching between ModernUI atlases and vanilla glyph sources.
+
+**Minecraft targets**
+
+| Minecraft | Previous release | Upgrade to |
+| --- | --- | --- |
+| 1.21.10 | — | 3.12.0.4 |
+| 1.21.6–1.21.8 | 3.11.1.11 | 3.12.0.4 |
+| 1.21.4 | 3.11.1.11 | 3.12.0.3 |
+| 1.21–1.21.1 | 3.11.1.9 | 3.12.0.2 |
+| 1.20–1.20.1 | 3.11.1.6 | 3.12.0.1 |
+
+### Highlights
+- **Center UI & configuration overhaul:** The home screen is completely reworked with new UI/UX polish, an in-game changelog viewer, restored view configs plus new layouts, and a Preferences context menu that now offers "Reset to Default" for any entry. A fresh configuration abstraction keeps options in sync across loaders.
+- **Visual polish & blur controls:** Added an "Additional Blur Effect" toggle for vanilla screens, fixed layer-blitting threading crashes while resizing, and switched the default font to the customized *Inter Frozen Medium* (with matching italics). Blur defaults now adapt automatically—even when OptiFine is present—and localization stays current with vanilla strings.
+- **Audio & ambience:** Ships the full version of Portal's "Still Alive" and introduces configuration for the start-up "ding" sound and volume so you can tune notifications.
+- **Bootstrap & rendering options:** New bootstrap flags (`modernui_mc_skipGLPromotion`, `arc3d_context_useStagingBuffers`, `arc3d_context_allowGLSPIRV`) expose finer control over GL promotion and Arc3D staging buffers. GL promotion is always skipped on macOS and can be bypassed elsewhere; Forge/NeoForge now initialize the UI manager and UI thread earlier to keep up with loader lifecycle changes.
+- **Reliability & logging:** ModernUI-MC now uses its own logger rather than the framework logger, and other stability fixes land as part of this release line.
+
+### NeoForge Extension 1.21.8 (1.21.4, 1.21.1)
 * (1.21.8 only) Fully port to 1.21.8 and adapt to the technical changes in vanilla
-* (1.21.8, NeoForge only) On Windows/Linux, you have to manually set `config/fml.toml > earlyWindowControl` to false;
-  otherwise, your game will crash on the first launch — though you can simply restart it to resolve the issue;
-  this will finally be resolved in MC 1.21.9+
+* (1.21.8, NeoForge only) On Windows/Linux, you have to manually set `config/fml.toml > earlyWindowControl` to false; otherwise, your game will crash on the first launch — though you can simply restart it to resolve the issue; this will finally be resolved in MC 1.21.9+
 * (1.21.8 only) Enable blur effect by default even when OptiFine is installed
 * (1.21.8 only) Delay applying the configuration until just before the game finishes loading
 * (1.21.8 only) Deprecate method for drawing rounded rectangles in `ExtendedGuiGraphics`, replaced by gradient rectangles
@@ -18,31 +36,16 @@ Changes from
 * (1.21.8 only) Modern rounded tooltip is applied at most once per frame; subsequent tooltips in the same frame are non-rounded
 * (1.21.1 only) Disable blur effect by default when OptiFine is installed
 * (1.21.1 only) Fix coordinates in layer blitting
-* Add complete version of Still Alive, the Portal ending song
-* Add bootstrap option `modernui_mc_skipGLPromotion` to skip GL promotion
-* Always skip GL promotion on macOS
-* Add modified version of Inter font "Inter Frozen Medium" and its native italic font as default
-* Add in-game changelogs to Home UI
-* Add bootstrap options:
-  - `arc3d_context_useStagingBuffers` to enable staging buffers in OpenGL, default is false, previously true
-  - `arc3d_context_allowGLSPIRV` to use SPIR-V in OpenGL, compiled by Arc3D shader compiler, default is false
-* (Forge/NeoForge only) Initialize UI manager and UI thread earlier
-* Add a separate option "Additional Blur Effect" to blur vanilla screens, default is false
-* Fix threading issue in layer blitting, which may cause crash when resizing window
 * (1.21.1+, NeoForge only) Always do GL promotion if EARLY_WINDOW_CONTROL is disabled
-* Use private logger instead of framework logger
-* Add configs to custom "ding" sound and volume
-* Update localization to match vanilla language data
-* Add "Reset to Default" to context menu in Preferences UI, to reset a config entry to its default value
-* Add back view configs and add some new view configs
-* The entire Center UI is reworked, a great number of UI/UX improvements and bug fixes
-* Provide an abstraction of config system
-#### Forge Extension 1.21.8 (1.21.4, 1.21.1, 1.20.1)
+
+### Forge Extension 1.21.8 (1.21.4, 1.21.1, 1.20.1)
 * (1.21.8 only) Migrate to new EventBus
 * Equivalent to NeoForge version, except where noted
-#### Fabric Extension 1.21.8 (1.21.4, 1.21.1, 1.20.1)
+
+### Fabric Extension 1.21.8 (1.21.4, 1.21.1, 1.20.1)
 * Functionally equivalent to NeoForge version, except where noted
-#### Modern Text Engine 1.21.8 (1.21.4, 1.21.1, 1.20.1)
+
+### Modern Text Engine 1.21.8 (1.21.4, 1.21.1, 1.20.1)
 * (1.21.8 only) Port to 1.21.8
 * (1.21.8 only) Ensure that the shadow layer and non-shadow layer of obfuscated text in GUI use the same glyphs.
 * (1.21.8 only) Separate and simplify text rendering logic for world and GUI: in world, always use SDF rendering;
@@ -57,7 +60,8 @@ Changes from
 * For line wrapping of formatted text, allow emitting no lines to match vanilla behavior,
   fixing the issue where an empty tooltip is sometimes visible.
 * Fix crash with obfuscated style on large bitmap fonts
-#### Core Framework 3.12.0
+
+### Core Framework 3.12.0
 * Fix disappearing transitions caused by removing views in batches cannot be seen
 * Tweak edge absorption in NestedScrollView
 * Delay TextBlob initialization of ShapedText until draw time
