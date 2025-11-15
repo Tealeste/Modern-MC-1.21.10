@@ -1,7 +1,7 @@
 # Changelog
 All notable updates to Modern UI for Minecraft are tracked here. The current release line is ModernUI **3.12.0.x**.
 
-## Modern UI 3.12.0.4 (3.12.0.3, 3.12.0.2, 3.12.0.1)
+## Modern UI 3.12.0.5 (3.12.0.4, 3.12.0.3, 3.12.0.2, 3.12.0.1)
 ### Minecraft 1.21.10 refresh
 - Ported the entire stack to Minecraft 1.21.10, including Forge 60.0.17 and NeoForge 21.10.49-beta, and refreshed the Fabric metadata to match the new protocol.
 - Added `InputHelper` plus mixin updates so ModernUI no longer depends on the removed `Screen.has*Down()` helpers when detecting Ctrl/Shift/Alt for shortcuts, zooming, and scrolling.
@@ -13,8 +13,8 @@ All notable updates to Modern UI for Minecraft are tracked here. The current rel
 
 | Minecraft | Previous release | Upgrade to |
 | --- | --- | --- |
-| 1.21.10 | — | 3.12.0.4 |
-| 1.21.6–1.21.8 | 3.11.1.11 | 3.12.0.4 |
+| 1.21.10 | — | 3.12.0.5 |
+| 1.21.6–1.21.8 | 3.11.1.11 | 3.12.0.5 |
 | 1.21.4 | 3.11.1.11 | 3.12.0.3 |
 | 1.21–1.21.1 | 3.11.1.9 | 3.12.0.2 |
 | 1.20–1.20.1 | 3.11.1.6 | 3.12.0.1 |
