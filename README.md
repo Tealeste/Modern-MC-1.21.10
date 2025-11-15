@@ -1,5 +1,5 @@
-## 现代化UI
-> Modern UI for Minecraft（简称 ModernUI-MC）的中文简介，面向 Forge / NeoForge / Fabric 三端。([English version](#modern-ui-for-minecraft))
+## 现代化UI - 自用 Fork
+> 自用分支，将持续维护到 BloCamLimb 分支更新1.21.10后。([English version](#modern-ui-for-minecraft))
 
 ### 项目简介
 ModernUI-MC 在 Minecraft 客户端内嵌了 [ModernUI 框架](https://github.com/Tealeste/Modern-MC-1.21.10)，让基于 ModernUI 的桌面应用/模块能够无缝在游戏内运行，同时为原版界面注入现代化文字渲染、动画与大量实用工具。玩家只需放入一个 jar，即可获得完整运行时、字体与扩展，开发者也能复用同一套 API。
