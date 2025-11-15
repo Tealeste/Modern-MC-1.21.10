@@ -23,8 +23,25 @@ allprojects {
     java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
     repositories {
-        mavenCentral()
+        mavenCentral {
+            content {
+                excludeGroup 'org.lwjgl'
+            }
+        }
         mavenLocal()
+        ivy {
+            name 'MojangLibraries'
+            url 'https://libraries.minecraft.net/'
+            patternLayout {
+                artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeGroup 'org.lwjgl'
+            }
+        }
     }
 
     dependencies {

@@ -171,7 +171,7 @@ public final class ModernStringSplitter extends StringSplitter {
         // Handle Enchantment Table
         /*if (text instanceof Component component &&
                 component.getSiblings().isEmpty() &&
-                component.getStyle().getFont().equals(Minecraft.ALT_FONT) &&
+                FontDescriptions.matches(component.getStyle().getFont(), Minecraft.ALT_FONT) &&
                 component.getContents() instanceof LiteralContents literal) {
             final MutableFloat maxWidth = new MutableFloat(width);
             final MutableInt position = new MutableInt();

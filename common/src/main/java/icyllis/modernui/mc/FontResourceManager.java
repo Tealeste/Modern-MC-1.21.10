@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.server.packs.resources.PreparableReloadListener.SharedState;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -107,10 +108,11 @@ public class FontResourceManager implements PreparableReloadListener {
      */
     @Nonnull
     @Override
-    public CompletableFuture<Void> reload(@Nonnull PreparationBarrier preparationBarrier,
-                                          @Nonnull ResourceManager resourceManager,
-                                          @Nonnull Executor preparationExecutor,
+    public CompletableFuture<Void> reload(@Nonnull SharedState sharedState,
+                                          @Nonnull Executor backgroundExecutor,
+                                          @Nonnull PreparationBarrier preparationBarrier,
                                           @Nonnull Executor reloadExecutor) {
+        final ResourceManager resourceManager = sharedState.resourceManager();
         CompletableFuture<LoadResults> preparation;
         {
             final var results = new LoadResults();
@@ -121,16 +123,16 @@ public class FontResourceManager implements PreparableReloadListener {
                             ModernUIClient.getInstance().loadTypeface();
                         }
                     },
-                    preparationExecutor);
+                    backgroundExecutor);
             final var loadEmojis = CompletableFuture.runAsync(() ->
                             loadEmojis(resourceManager, results),
-                    preparationExecutor);
+                    backgroundExecutor);
             final var loadShortcodes = CompletableFuture.runAsync(() -> {
                         if (resourceManager.getNamespaces().contains(ModernUI.ID)) {
                             loadShortcodes(resourceManager, results);
                         }
                     },
-                    preparationExecutor);
+                    backgroundExecutor);
             preparation = CompletableFuture.allOf(loadFonts, loadEmojis, loadShortcodes)
                     .thenApply(__ -> results);
         }

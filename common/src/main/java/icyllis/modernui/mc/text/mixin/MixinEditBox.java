@@ -43,7 +43,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.function.BiFunction;
+import java.util.List;
 
 /**
  * Changes:
@@ -94,7 +94,8 @@ public abstract class MixinEditBox extends AbstractWidget {
     private String suggestion;
 
     @Shadow
-    private BiFunction<String, Integer, FormattedCharSequence> formatter;
+    @Final
+    private List<EditBox.TextFormatter> formatters;
 
     @Shadow
     private int textX;
@@ -110,18 +111,44 @@ public abstract class MixinEditBox extends AbstractWidget {
     @Nullable
     private Component hint;
 
+    @Shadow
+    protected abstract FormattedCharSequence applyFormat(String text, int firstCharacterIndex);
+
+    @Unique
+    private final EditBox.TextFormatter modernUI_MC$textWrapperFormatter =
+            (text, __) -> new VanillaTextWrapper(text);
+
     public MixinEditBox(int x, int y, int w, int h, Component msg) {
         super(x, y, w, h, msg);
     }
 
-    /*@Inject(method = "<init>(Lnet/minecraft/client/gui/Font;IIIILnet/minecraft/client/gui/components/EditBox;" +
+    @Inject(method = "<init>(Lnet/minecraft/client/gui/Font;IILnet/minecraft/network/chat/Component;)V",
+            at = @At("RETURN"))
+    private void modernUI_MC$installFormatter(Font font, int x, int y, Component msg, CallbackInfo ci) {
+        modernUI_MC$ensureFormatter();
+    }
+
+    @Inject(method = "<init>(Lnet/minecraft/client/gui/Font;IIIILnet/minecraft/network/chat/Component;)V",
+            at = @At("RETURN"))
+    private void modernUI_MC$installFormatter(Font font, int x, int y, int w, int h,
+                                              Component msg, CallbackInfo ci) {
+        modernUI_MC$ensureFormatter();
+    }
+
+    @Inject(method = "<init>(Lnet/minecraft/client/gui/Font;IIIILnet/minecraft/client/gui/components/EditBox;" +
             "Lnet/minecraft/network/chat/Component;)V",
             at = @At("RETURN"))
-    public void EditBox(Font font, int x, int y, int w, int h, @Nullable EditBox src, Component msg,
-                        CallbackInfo ci) {
-        // fast path
-        formatter = (s, i) -> new VanillaTextWrapper(s);
-    }*/
+    private void modernUI_MC$installFormatter(Font font, int x, int y, int w, int h,
+                                              @Nullable EditBox source, Component msg, CallbackInfo ci) {
+        modernUI_MC$ensureFormatter();
+    }
+
+    @Unique
+    private void modernUI_MC$ensureFormatter() {
+        if (!formatters.contains(modernUI_MC$textWrapperFormatter)) {
+            formatters.add(0, modernUI_MC$textWrapperFormatter);
+        }
+    }
 
     @Shadow
     public abstract int getInnerWidth();
@@ -160,7 +187,7 @@ public abstract class MixinEditBox extends AbstractWidget {
         final boolean separate;
         if (!viewText.isEmpty()) {
             String subText = cursorInRange ? viewText.substring(0, viewCursorPos) : viewText;
-            FormattedCharSequence subSequence = formatter.apply(subText, displayPos);
+            FormattedCharSequence subSequence = applyFormat(subText, displayPos);
             if (!(subSequence instanceof VanillaTextWrapper)) {
                 separate = true;
                 gr.drawString(font, subSequence, baseX, baseY, color, true);
@@ -201,7 +228,7 @@ public abstract class MixinEditBox extends AbstractWidget {
 
         if (!viewText.isEmpty() && cursorInRange && viewCursorPos < viewText.length() && separate) {
             String subText = viewText.substring(viewCursorPos);
-            FormattedCharSequence subSequence = formatter.apply(subText, cursorPos);
+            FormattedCharSequence subSequence = applyFormat(subText, cursorPos);
             gr.pose().pushMatrix();
             gr.pose().translate(hori - baseX, 0);
             gr.drawString(font, subSequence, baseX, baseY, color, true);

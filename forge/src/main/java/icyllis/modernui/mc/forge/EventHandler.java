@@ -239,7 +239,7 @@ final class EventHandler {
         /*@SubscribeEvent
         static void onRenderLevelLast(@Nonnull RenderLevelLastEvent event) {
             if (Screen.hasAltDown() &&
-                    InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_KP_7)) {
+                    InputConstants.isKeyDown(Minecraft.getInstance().getWindow().handle(), GLFW.GLFW_KEY_KP_7)) {
                 LOGGER.info("Capture from RenderLevelLastEvent");
                 LOGGER.info("PoseStack.last().pose(): {}", event.getPoseStack().last().pose());
                 LOGGER.info("ProjectionMatrix: {}", event.getProjectionMatrix());

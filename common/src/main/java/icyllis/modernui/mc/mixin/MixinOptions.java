@@ -1,6 +1,6 @@
 /*
  * Modern UI.
- * Copyright (C) 2019-2023 BloCamLimb. All rights reserved.
+ * Copyright (C) 2019-2025 BloCamLimb. All rights reserved.
  *
  * Modern UI is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,20 +18,23 @@
 
 package icyllis.modernui.mc.mixin;
 
-import icyllis.modernui.mc.MuiModApi;
-import net.minecraft.client.KeyboardHandler;
-import net.minecraft.client.input.KeyEvent;
+import icyllis.modernui.mc.BlurHandler;
+import net.minecraft.client.Options;
+import net.minecraft.sounds.SoundSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(KeyboardHandler.class)
-public class MixinKeyboardHandler {
+@Mixin(Options.class)
+public class MixinOptions {
 
-    @Inject(method = "keyPress", at = @At("HEAD"))
-    private void onKeyInputPost(long window, int action, KeyEvent event,
-                                CallbackInfo ci) {
-        MuiModApi.dispatchOnPreKeyInput(window, event.key(), event.scancode(), action, event.modifiers());
+    @Inject(method = "getFinalSoundSourceVolume", at = @At("RETURN"), cancellable = true)
+    private void modernui$applyVolumeMultiplier(SoundSource soundSource,
+                                                CallbackInfoReturnable<Float> cir) {
+        float multiplier = BlurHandler.INSTANCE.getVolumeMultiplier();
+        if (multiplier != 1.0f) {
+            cir.setReturnValue(cir.getReturnValueF() * multiplier);
+        }
     }
 }

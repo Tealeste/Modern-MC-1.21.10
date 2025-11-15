@@ -88,7 +88,7 @@ public enum BlurHandler {
      */
     private boolean mHasScreen;
 
-    private float mVolumeMultiplier = 1;
+    private volatile float mVolumeMultiplier = 1;
 
     /**
      * Use blur shader in game renderer post-processing.
@@ -199,7 +199,7 @@ public enum BlurHandler {
         if (minecraft.isWindowActive()) {
             targetVolumeMultiplier = 1;
         } else if (sMasterVolumeMinimized < sMasterVolumeInactive &&
-                GLFW.glfwGetWindowAttrib(minecraft.getWindow().getWindow(), GLFW.GLFW_ICONIFIED) != 0) {
+                GLFW.glfwGetWindowAttrib(minecraft.getWindow().handle(), GLFW.GLFW_ICONIFIED) != 0) {
             targetVolumeMultiplier = sMasterVolumeMinimized;
         } else {
             targetVolumeMultiplier = sMasterVolumeInactive;
@@ -217,9 +217,12 @@ public enum BlurHandler {
                         targetVolumeMultiplier
                 );
             }
-            float volume = minecraft.options.getSoundSourceVolume(SoundSource.MASTER);
-            minecraft.getSoundManager().updateSourceVolume(SoundSource.MASTER, volume * mVolumeMultiplier);
+            minecraft.getSoundManager().updateSourceVolume(SoundSource.MASTER);
         }
+    }
+
+    public float getVolumeMultiplier() {
+        return mVolumeMultiplier;
     }
 
     // INTERNAL HOOK

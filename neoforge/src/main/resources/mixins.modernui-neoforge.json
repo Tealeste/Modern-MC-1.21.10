@@ -21,6 +21,7 @@
     "MixinKeyboardHandler",
     "MixinLevelRendererDBG",
     "MixinMinecraft",
+    "MixinOptions",
     "MixinRenderSystem",
     "MixinScreen",
     "MixinScrollPanel",

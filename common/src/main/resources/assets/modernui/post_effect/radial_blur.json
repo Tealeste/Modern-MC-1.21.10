@@ -4,7 +4,7 @@
   },
   "passes": [
     {
-      "vertex_shader": "minecraft:post/sobel",
+      "vertex_shader": "minecraft:post/rotscale",
       "fragment_shader": "modernui:post/radial_blur",
       "inputs": [
         {

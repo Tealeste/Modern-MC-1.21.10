@@ -157,7 +157,7 @@ public class FormattedLayoutKey {
             @Override
             public Optional<Object> accept(@Nonnull Style style, @Nonnull String content) {
                 mTexts.add(content);
-                mFonts.add(style.getFont());
+                mFonts.add(FontDescriptions.toResourceLocation(style.getFont()));
                 mCodes.add(CharacterStyle.flatten(style));
                 return Optional.empty(); // continue
             }
@@ -195,7 +195,7 @@ public class FormattedLayoutKey {
                     // there's a style transition, break here and append last component
                     if (!mBuilder.isEmpty()) {
                         mTexts.add(mBuilder);
-                        mFonts.add(mStyle.getFont());
+                        mFonts.add(FontDescriptions.toResourceLocation(mStyle.getFont()));
                         mCodes.add(CharacterStyle.flatten(mStyle));
                         allocate();
                     }
@@ -209,7 +209,7 @@ public class FormattedLayoutKey {
                 // append last component
                 if (mBuilder != null && !mBuilder.isEmpty()) {
                     mTexts.add(mBuilder);
-                    mFonts.add(mStyle.getFont());
+                    mFonts.add(FontDescriptions.toResourceLocation(mStyle.getFont()));
                     mCodes.add(CharacterStyle.flatten(mStyle));
                 }
                 // we later make copies to generate a Key, so we can release these builders

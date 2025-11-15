@@ -420,7 +420,8 @@ public final class ModernTextRenderer {
                            @Nonnull Matrix4f matrix,
                            @Nonnull MultiBufferSource buffer, boolean seeThrough, int colorBackground,
                            int packedLight) {
-        if (mGlobalRenderer && text.accept((index, style, codePoint) -> !style.getFont().equals(Minecraft.ALT_FONT))) {
+        if (mGlobalRenderer && text.accept((index, style, codePoint) ->
+                !FontDescriptions.matches(style.getFont(), Minecraft.ALT_FONT))) {
             v.setValue(x);
             mFontEngine.handleSequence(text,
                     (t, style) -> {

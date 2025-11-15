@@ -25,6 +25,7 @@
     "MixinMinecraft",
     "MixinMinecraftEXT",
     "MixinMouseHandler",
+    "MixinOptions",
     "MixinRenderSystem",
     "MixinScreen",
     "MixinSelectionList",

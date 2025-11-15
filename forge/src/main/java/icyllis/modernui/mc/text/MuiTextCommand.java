@@ -28,12 +28,14 @@ import net.minecraft.Util;
 import net.minecraft.commands.*;
 import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 
 public class MuiTextCommand {
 
     public static final ResourceLocation JB_MONO = ModernUIMod.location("jetbrains-mono-medium");
+    private static final FontDescription JB_MONO_FONT = new FontDescription.Resource(JB_MONO);
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
                                 CommandBuildContext context) {
@@ -162,7 +164,7 @@ public class MuiTextCommand {
         source.sendSystemMessage(component);
         source.sendSystemMessage(
                 Component.literal(result)
-                        .setStyle(Style.EMPTY.withFont(JB_MONO))
+                        .setStyle(Style.EMPTY.withFont(JB_MONO_FONT))
         );
         Util.ioPool().execute(() -> ModernUIMod.LOGGER.info(TextLayoutEngine.MARKER, result));
     }
@@ -183,7 +185,7 @@ public class MuiTextCommand {
                                             lineNum[0]++, len, notFirstLine
                                     )
                             )
-                            .setStyle(Style.EMPTY.withFont(JB_MONO)));
+                            .setStyle(Style.EMPTY.withFont(JB_MONO_FONT)));
                     b.append(lineString);
                     var ib = new StringBuilder();
                     ib.append("\nUTF16: ");
@@ -195,7 +197,7 @@ public class MuiTextCommand {
                     }
                     ib.append('\n');
                     b.append(Component.literal(ib.toString())
-                            .setStyle(Style.EMPTY.withFont(JB_MONO)));
+                            .setStyle(Style.EMPTY.withFont(JB_MONO_FONT)));
                 }
         );
 

@@ -20,7 +20,6 @@ package icyllis.modernui.mc.text;
 
 import com.google.gson.JsonParseException;
 import com.mojang.blaze3d.font.GlyphInfo;
-import com.mojang.blaze3d.font.SheetGlyphInfo;
 import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import icyllis.arc3d.core.PixelUtils;
@@ -58,7 +57,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Function;
 
 import static icyllis.modernui.mc.ModernUIMod.LOGGER;
 
@@ -556,11 +554,5 @@ public class BitmapFont implements Font, AutoCloseable {
             return advance;
         }
 
-        @Nonnull
-        @Override
-        public net.minecraft.client.gui.font.glyphs.BakedGlyph bake(
-                @Nonnull Function<SheetGlyphInfo, net.minecraft.client.gui.font.glyphs.BakedGlyph> function) {
-            return EmptyGlyph.INSTANCE;
-        }
     }
 }

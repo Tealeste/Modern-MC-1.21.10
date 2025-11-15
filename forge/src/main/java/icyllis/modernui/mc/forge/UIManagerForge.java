@@ -27,6 +27,7 @@ import icyllis.modernui.mc.*;
 import icyllis.modernui.mc.ui.CenterFragment2;
 import icyllis.modernui.text.TextUtils;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.texture.*;
@@ -58,13 +59,17 @@ import static org.lwjgl.glfw.GLFW.*;
 public final class UIManagerForge extends UIManager implements LifecycleOwner {
 
     @SuppressWarnings("NoTranslation")
+    private static final KeyMapping.Category MODERN_UI_CATEGORY =
+            KeyMapping.Category.register(ModernUIMod.location("modern_ui"));
+
+    @SuppressWarnings("NoTranslation")
     public static final KeyMapping OPEN_CENTER_KEY = new KeyMapping(
             "key.modernui.openCenter", KeyConflictContext.UNIVERSAL, KeyModifier.CONTROL,
-            InputConstants.Type.KEYSYM, GLFW_KEY_K, "Modern UI");
+            InputConstants.Type.KEYSYM, GLFW_KEY_K, MODERN_UI_CATEGORY);
     @SuppressWarnings("NoTranslation")
     public static final KeyMapping ZOOM_KEY = new KeyMapping(
             "key.modernui.zoom", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-            InputConstants.Type.KEYSYM, GLFW_KEY_C, "Modern UI");
+            InputConstants.Type.KEYSYM, GLFW_KEY_C, MODERN_UI_CATEGORY);
 
     /*public static final Method SEND_TO_CHAT =
             ObfuscationReflectionHelper.findMethod(ChatComponent.class, "m_93790_",
@@ -143,7 +148,8 @@ public final class UIManagerForge extends UIManager implements LifecycleOwner {
             if (minecraft.screen == null ||
                     minecraft.screen.shouldCloseOnEsc() ||
                     minecraft.screen instanceof TitleScreen) {
-                InputConstants.Key key = InputConstants.getKey(keyCode, scanCode);
+                KeyEvent mcEvent = new KeyEvent(keyCode, scanCode, mods);
+                InputConstants.Key key = InputConstants.getKey(mcEvent);
                 if (OPEN_CENTER_KEY.isActiveAndMatches(key)) {
                     open(new CenterFragment2());
                     return;

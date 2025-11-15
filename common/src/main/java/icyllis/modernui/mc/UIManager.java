@@ -195,7 +195,7 @@ public abstract class UIManager implements LifecycleOwner {
         MuiModApi.addOnScreenChangeListener(this::onScreenChange);
         MuiModApi.addOnWindowResizeListener((width, height, guiScale, oldGuiScale) -> resize(width, height));
         MuiModApi.addOnPreKeyInputListener((window, keyCode, scanCode, action, mods) -> {
-            if (window == minecraft.getWindow().getWindow()) {
+            if (window == minecraft.getWindow().handle()) {
                 onPreKeyInput(keyCode, scanCode, action, mods);
             }
         });
@@ -515,10 +515,10 @@ public abstract class UIManager implements LifecycleOwner {
             float y = (float) (mouseHandler.ypos() *
                     window.getHeight() / window.getScreenHeight());
             int mods = 0;
-            if (Screen.hasControlDown()) {
+            if (InputHelper.isControlDown()) {
                 mods |= KeyEvent.META_CTRL_ON;
             }
-            if (Screen.hasShiftDown()) {
+            if (InputHelper.isShiftDown()) {
                 mods |= KeyEvent.META_SHIFT_ON;
             }
             MotionEvent event = MotionEvent.obtain(now, MotionEvent.ACTION_SCROLL,
@@ -541,7 +541,7 @@ public abstract class UIManager implements LifecycleOwner {
                     mWindow.getHeight() / mWindow.getScreenHeight());
             int buttonState = 0;
             for (int i = 0; i < 5; i++) {
-                if (glfwGetMouseButton(mWindow.getWindow(), i) == GLFW_PRESS) {
+                if (glfwGetMouseButton(mWindow.handle(), i) == GLFW_PRESS) {
                     buttonState |= 1 << i;
                 }
             }
@@ -585,7 +585,7 @@ public abstract class UIManager implements LifecycleOwner {
                 }
             }
         }
-        if (!Screen.hasControlDown() || !Screen.hasShiftDown() || !ModernUIMod.isDeveloperMode()) {
+        if (!InputHelper.isControlDown() || !InputHelper.isShiftDown() || !ModernUIMod.isDeveloperMode()) {
             return;
         }
         if (action == GLFW_PRESS) {
@@ -655,7 +655,7 @@ public abstract class UIManager implements LifecycleOwner {
 
     public void onGameLoadFinished() {
         if (sDingEnabled) {
-            glfwRequestWindowAttention(minecraft.getWindow().getWindow());
+            glfwRequestWindowAttention(minecraft.getWindow().handle());
             final String sound = sDingSound;
             final float volume = sDingVolume;
             if (volume > 0) {
@@ -760,7 +760,7 @@ public abstract class UIManager implements LifecycleOwner {
         if (minecraft.gameRenderer.currentPostEffect() == null) {
             LOGGER.info(MARKER, "Load post-processing effect");
             final ResourceLocation effect;
-            if (InputConstants.isKeyDown(mWindow.getWindow(), GLFW_KEY_RIGHT_SHIFT)) {
+            if (InputConstants.isKeyDown(mWindow, GLFW_KEY_RIGHT_SHIFT)) {
                 effect = ModernUIMod.location("grayscale");
             } else {
                 effect = ModernUIMod.location("radial_blur");
@@ -1021,7 +1021,7 @@ public abstract class UIManager implements LifecycleOwner {
         mRoot.mHandler.post(this::restoreLayoutTransition);
         mRoot.mRawDrawHandlers.clear();
         mScreen = null;
-        glfwSetCursor(mWindow.getWindow(), MemoryUtil.NULL);
+        glfwSetCursor(mWindow.handle(), MemoryUtil.NULL);
     }
 
     public void drawExtTooltip(ItemStack itemStack,
@@ -1217,7 +1217,9 @@ public abstract class UIManager implements LifecycleOwner {
                     if (event.getKeyCode() == KeyEvent.KEY_ESCAPE) {
                         back = true;
                     } else {
-                        InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
+                        net.minecraft.client.input.KeyEvent mcEvent =
+                                new net.minecraft.client.input.KeyEvent(event.getKeyCode(), event.getScanCode(), 0);
+                        InputConstants.Key key = InputConstants.getKey(mcEvent);
                         back = MuiModApi.get().isKeyBindingMatches(minecraft.options.keyInventory, key);
                     }
                 } else {
@@ -1399,7 +1401,7 @@ public abstract class UIManager implements LifecycleOwner {
 
         @MainThread
         protected void applyPointerIcon(int pointerType) {
-            minecraft.schedule(() -> glfwSetCursor(mWindow.getWindow(),
+            minecraft.schedule(() -> glfwSetCursor(mWindow.handle(),
                     PointerIcon.getSystemIcon(pointerType).getHandle()));
         }
 

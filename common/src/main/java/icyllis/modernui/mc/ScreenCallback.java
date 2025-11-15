@@ -54,7 +54,9 @@ public interface ScreenCallback {
     default boolean isBackKey(int keyCode, @Nonnull KeyEvent event) {
         if (keyCode == KeyEvent.KEY_ESCAPE)
             return true;
-        InputConstants.Key key = InputConstants.getKey(keyCode, event.getScanCode());
+        net.minecraft.client.input.KeyEvent mcEvent =
+                new net.minecraft.client.input.KeyEvent(keyCode, event.getScanCode(), 0);
+        InputConstants.Key key = InputConstants.getKey(mcEvent);
         return MuiModApi.get().isKeyBindingMatches(
                 Minecraft.getInstance().options.keyInventory,
                 key

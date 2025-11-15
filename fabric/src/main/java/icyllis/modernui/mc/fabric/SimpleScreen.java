@@ -22,6 +22,9 @@ import icyllis.modernui.fragment.Fragment;
 import icyllis.modernui.mc.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -147,17 +150,17 @@ final class SimpleScreen extends Screen implements MuiScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseClicked(@Nonnull MouseButtonEvent event, boolean fromClick) {
         return false;
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseReleased(@Nonnull MouseButtonEvent event) {
         return false;
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double deltaX, double deltaY) {
+    public boolean mouseDragged(@Nonnull MouseButtonEvent event, double deltaX, double deltaY) {
         return true;
     }
 
@@ -168,19 +171,23 @@ final class SimpleScreen extends Screen implements MuiScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        mHost.onKeyPress(keyCode, scanCode, modifiers);
+    public boolean keyPressed(@Nonnull KeyEvent event) {
+        mHost.onKeyPress(event.key(), event.scancode(), event.modifiers());
         return false;
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        mHost.onKeyRelease(keyCode, scanCode, modifiers);
+    public boolean keyReleased(@Nonnull KeyEvent event) {
+        mHost.onKeyRelease(event.key(), event.scancode(), event.modifiers());
         return false;
     }
 
     @Override
-    public boolean charTyped(char ch, int modifiers) {
-        return mHost.onCharTyped(ch);
+    public boolean charTyped(@Nonnull CharacterEvent event) {
+        boolean handled = false;
+        for (char ch : Character.toChars(event.codepoint())) {
+            handled |= mHost.onCharTyped(ch);
+        }
+        return handled;
     }
 }

@@ -93,7 +93,7 @@ final class EventHandler {
     static class Client {
 
         static {
-            assert (FMLEnvironment.dist.isClient());
+            assert (FMLEnvironment.getDist().isClient());
         }
 
         private Client() {
@@ -234,7 +234,7 @@ final class EventHandler {
     static class ClientDebug {
 
         static {
-            assert (FMLEnvironment.dist.isClient());
+            assert (FMLEnvironment.getDist().isClient());
         }
 
         private ClientDebug() {
@@ -243,7 +243,7 @@ final class EventHandler {
         /*@SubscribeEvent
         static void onRenderLevelLast(@Nonnull RenderLevelLastEvent event) {
             if (Screen.hasAltDown() &&
-                    InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_KP_7)) {
+                    InputConstants.isKeyDown(Minecraft.getInstance().getWindow().handle(), GLFW.GLFW_KEY_KP_7)) {
                 LOGGER.info("Capture from RenderLevelLastEvent");
                 LOGGER.info("PoseStack.last().pose(): {}", event.getPoseStack().last().pose());
                 LOGGER.info("ProjectionMatrix: {}", event.getProjectionMatrix());

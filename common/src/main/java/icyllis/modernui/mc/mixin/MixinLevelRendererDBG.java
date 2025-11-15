@@ -25,6 +25,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.world.entity.Entity;
+import icyllis.modernui.mc.InputHelper;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,8 +45,8 @@ public class MixinLevelRendererDBG {
     private void afterEntities(DeltaTracker deltaTracker, boolean renderBlockOutline,
                                Camera camera, GameRenderer gameRenderer, LightTexture lightTexture,
                                Matrix4f modelView, Matrix4f projection, CallbackInfo ci) {
-        if (Screen.hasAltDown() &&
-                InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_KP_7)) {
+        if (InputHelper.isAltDown() &&
+                InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_KP_7)) {
             LOGGER.info("Capture from MixinLevelRendererDBG.afterEntities()");
             LOGGER.info("Param ModelViewMatrix: {}", modelView);
             LOGGER.info("Param Camera.getPosition(): {}, pitch: {}, yaw: {}, rot: {}, detached: {}",
@@ -63,7 +64,7 @@ public class MixinLevelRendererDBG {
                         player.getYRot(), player.getYHeadRot(),
                         player.getEyePosition(deltaTracker.getGameTimeDeltaPartialTick(false)));
             }
-            Entity cameraEntity = Minecraft.getInstance().cameraEntity;
+            Entity cameraEntity = Minecraft.getInstance().getCameraEntity();
             if (cameraEntity != null) {
                 LOGGER.info("CameraEntity position: {}", cameraEntity.position());
             }

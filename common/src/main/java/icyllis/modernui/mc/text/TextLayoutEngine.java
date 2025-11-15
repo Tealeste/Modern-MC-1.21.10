@@ -205,8 +205,6 @@ public class TextLayoutEngine extends FontResourceManager
     /**
      * For {@link net.minecraft.client.Minecraft#DEFAULT_FONT},
      * should we keep some providers of them?
-     *
-     * @see StandardFontSet
      */
     public static volatile int sDefaultFontBehavior =
             DEFAULT_FONT_BEHAVIOR_IGNORE_ALL; // <- 0-3 is bit mask, 4-5 is enum
@@ -380,17 +378,6 @@ public class TextLayoutEngine extends FontResourceManager
         // When OpenGL texture ID changed (atlas resized), we want to use the new first atlas
         // for batch rendering, we need to clear any existing TextRenderType instances
         TextRenderType.clear(/*cleanup*/ false);
-        if (mVanillaFontManager != null) {
-            // We reuse baked glyphs for TextLayout, but don't reuse StandardBakedGlyph in
-            // the compatibility layer for Minecraft text system, then we have to invalidate
-            // the glyph cache (because normalized texture coordinates are changed)
-            var fontSets = ((AccessFontManager) mVanillaFontManager).getFontSets();
-            for (var fontSet : fontSets.values()) {
-                if (fontSet instanceof StandardFontSet standardFontSet) {
-                    standardFontSet.invalidateCache(mResLevel);
-                }
-            }
-        }
     }
 
     /**
@@ -487,29 +474,6 @@ public class TextLayoutEngine extends FontResourceManager
                     new FontCollection(defaultFonts.toArray(new FontFamily[0])));
         }
 
-        if (mVanillaFontManager != null) {
-            var fontSets = ((AccessFontManager) mVanillaFontManager).getFontSets();
-            if (fontSets.get(Minecraft.DEFAULT_FONT) instanceof StandardFontSet standardFontSet) {
-                standardFontSet.reload(mFontCollections.get(Minecraft.DEFAULT_FONT), mResLevel);
-            }
-            if (fontSets.get(Minecraft.UNIFORM_FONT) instanceof StandardFontSet standardFontSet) {
-                standardFontSet.reload(ModernUI.getSelectedTypeface(), mResLevel);
-            }
-            for (var e : fontSets.entrySet()) {
-                if (e.getKey().equals(Minecraft.DEFAULT_FONT) ||
-                        e.getKey().equals(Minecraft.UNIFORM_FONT)) {
-                    continue;
-                }
-                if (e.getValue() instanceof StandardFontSet standardFontSet) {
-                    standardFontSet.invalidateCache(mResLevel);
-                }
-            }
-            if (!fontSets.containsKey(Minecraft.UNIFORM_FONT)) {
-                var fontSet = new StandardFontSet(Minecraft.getInstance().getTextureManager(), Minecraft.UNIFORM_FONT);
-                fontSet.reload(ModernUI.getSelectedTypeface(), mResLevel);
-                fontSets.put(Minecraft.UNIFORM_FONT, fontSet);
-            }
-        }
 
         LOGGER.info(MARKER, "Reloaded text layout engine, res level: {} to {}, locale: {}, layout RTL: {}",
                 oldLevel, mResLevel, locale, layoutRtl);
@@ -614,11 +578,11 @@ public class TextLayoutEngine extends FontResourceManager
      */
     @Nonnull
     @Override
-    public CompletableFuture<Void> reload(@Nonnull PreparationBarrier preparationBarrier,
-                                          @Nonnull ResourceManager resourceManager,
-                                          @Nonnull Executor preparationExecutor,
+    public CompletableFuture<Void> reload(@Nonnull SharedState sharedState,
+                                          @Nonnull Executor backgroundExecutor,
+                                          @Nonnull PreparationBarrier preparationBarrier,
                                           @Nonnull Executor reloadExecutor) {
-        return prepareResources(resourceManager, preparationExecutor)
+        return prepareResources(sharedState.resourceManager(), backgroundExecutor)
                 .thenCompose(preparationBarrier::wait)
                 .thenAcceptAsync(results -> {
                     ProfilerFiller reloadProfiler = Profiler.get();
@@ -667,18 +631,7 @@ public class TextLayoutEngine extends FontResourceManager
         mFontCollections.putAll(mRegisteredFonts);
         mFontCollections.putAll(results.mFontCollections);
         mRawDefaultFontCollection = mFontCollections.get(Minecraft.DEFAULT_FONT);
-        // vanilla compatibility
-        if (mVanillaFontManager != null) {
-            var fontSets = ((AccessFontManager) mVanillaFontManager).getFontSets();
-            fontSets.values().forEach(FontSet::close);
-            fontSets.clear();
-            var textureManager = Minecraft.getInstance().getTextureManager();
-            mFontCollections.forEach((fontName, fontCollection) -> {
-                var fontSet = new StandardFontSet(textureManager, fontName);
-                fontSet.reload(fontCollection, mResLevel);
-                fontSets.put(fontName, fontSet);
-            });
-        } else {
+        if (mVanillaFontManager == null) {
             LOGGER.warn(MARKER, "Where is font manager?");
         }
         if (mRawDefaultFontCollection == null) {

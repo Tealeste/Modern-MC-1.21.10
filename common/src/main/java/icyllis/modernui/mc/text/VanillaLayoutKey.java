@@ -84,7 +84,7 @@ public class VanillaLayoutKey {
      */
     public VanillaLayoutKey update(@Nonnull String text, @Nonnull Style style) {
         mText = text;
-        mFont = style.getFont();
+        mFont = FontDescriptions.toResourceLocation(style.getFont());
         mCode = CharacterStyle.flatten(style);
         mHash = 0;
         return this;

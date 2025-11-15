@@ -24,6 +24,7 @@ import com.ibm.icu.text.BreakIterator;
 import icyllis.modernui.ModernUI;
 import icyllis.modernui.graphics.text.*;
 import icyllis.modernui.mc.ModernUIMod;
+import icyllis.modernui.mc.text.FontDescriptions;
 import icyllis.modernui.mc.text.mixin.MixinBidiReorder;
 import icyllis.modernui.mc.text.mixin.MixinClientLanguage;
 import icyllis.modernui.mc.text.mixin.MixinLanguage;
@@ -229,7 +230,7 @@ public class TextLayoutProcessor {
         int charCount = mBuilder.addCodePoint(codePoint);
         while (charCount-- > 0) {
             mStyles.add(styleFlags);
-            mFontNames.add(style.getFont());
+            mFontNames.add(FontDescriptions.toResourceLocation(style.getFont()));
         }
         return true;
     };

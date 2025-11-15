@@ -47,6 +47,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener.SharedState;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.neoforged.fml.config.ModConfig;
@@ -209,14 +210,14 @@ public class ModernUIFabricClient extends ModernUIClient implements ClientModIni
 
                 @Nonnull
                 @Override
-                public CompletableFuture<Void> reload(@Nonnull PreparationBarrier preparationBarrier,
-                                                      @Nonnull ResourceManager resourceManager,
-                                                      @Nonnull Executor preparationExecutor,
+                public CompletableFuture<Void> reload(@Nonnull SharedState sharedState,
+                                                      @Nonnull Executor backgroundExecutor,
+                                                      @Nonnull PreparationBarrier preparationBarrier,
                                                       @Nonnull Executor reloadExecutor) {
                     return FontResourceManager.getInstance().reload(
+                            sharedState,
+                            backgroundExecutor,
                             preparationBarrier,
-                            resourceManager,
-                            preparationExecutor,
                             reloadExecutor
                     );
                 }

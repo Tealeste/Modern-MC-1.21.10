@@ -151,7 +151,7 @@ final class Registration {
     static class ModClient {
 
         static {
-            assert (FMLEnvironment.dist.isClient());
+            assert (FMLEnvironment.getDist().isClient());
         }
 
         private ModClient() {
@@ -426,7 +426,7 @@ final class Registration {
     /*static class ModClientDev {
 
         static {
-            assert (FMLEnvironment.dist.isClient());
+            assert (FMLEnvironment.getDist().isClient());
         }
 
         private ModClientDev() {

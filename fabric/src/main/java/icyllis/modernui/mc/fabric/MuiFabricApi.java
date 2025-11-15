@@ -33,6 +33,9 @@ import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -96,9 +99,16 @@ public final class MuiFabricApi extends MuiModApi {
 
     @Override
     public boolean isKeyBindingMatches(KeyMapping keyMapping, InputConstants.Key key) {
-        return key.getType() == InputConstants.Type.KEYSYM
-                ? keyMapping.matches(key.getValue(), InputConstants.UNKNOWN.getValue())
-                : keyMapping.matches(InputConstants.UNKNOWN.getValue(), key.getValue());
+        if (key.getType() == InputConstants.Type.KEYSYM) {
+            KeyEvent event = new KeyEvent(key.getValue(), InputConstants.UNKNOWN.getValue(), 0);
+            return keyMapping.matches(event);
+        }
+        MouseButtonEvent event = new MouseButtonEvent(
+                0.0,
+                0.0,
+                new MouseButtonInfo(key.getValue(), 0)
+        );
+        return keyMapping.matchesMouse(event);
     }
 
     @Override
