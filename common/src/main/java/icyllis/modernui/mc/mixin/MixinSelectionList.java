@@ -44,6 +44,9 @@ public abstract class MixinSelectionList extends AbstractContainerWidget impleme
     @Final
     protected Minecraft minecraft;
 
+    @Shadow
+    protected abstract void repositionEntries();
+
     @Unique
     @Nullable
     private ScrollController modernUI_MC$scrollController;
@@ -116,8 +119,9 @@ public abstract class MixinSelectionList extends AbstractContainerWidget impleme
     public void setScrollAmount(double target) {
         if (modernUI_MC$scrollController != null && !modernUI_MC$callSuperSetScrollAmount) {
             modernUI_MC$skipAnimationTo(target);
-        } else
-            super.setScrollAmount(target);
+        } else {
+            modernUI_MC$applyScrollAmount(target);
+        }
     }
 
     @Override
@@ -133,5 +137,11 @@ public abstract class MixinSelectionList extends AbstractContainerWidget impleme
         modernUI_MC$scrollController.setMaxScroll(maxScrollAmount());
         modernUI_MC$scrollController.scrollTo((float) target);
         modernUI_MC$scrollController.abortAnimation();
+    }
+
+    @Unique
+    private void modernUI_MC$applyScrollAmount(double target) {
+        super.setScrollAmount(target);
+        repositionEntries();
     }
 }

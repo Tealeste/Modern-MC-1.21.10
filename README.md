@@ -24,7 +24,7 @@ ModernUI-MC 在 Minecraft 客户端内嵌了 [ModernUI 框架](https://github.co
 
 | Minecraft | 加载器 | ModernUI-MC | 说明 |
 | --- | --- | --- | --- |
-| 1.21.10 | NeoForge / Forge / Fabric | 3.12.0.5 | 首次适配 1.21.10，更新输入/音频/字体 API，并同步 Forge 60.0.17 与 NeoForge 21.10.49-beta。 |
+| 1.21.10 | NeoForge / Forge / Fabric | 3.12.0.6 | 修复 1.21.10 原版列表（如“按键绑定”）无法正常滚动/拖动的问题，包含 3.12.0.5 的全部更新。 |
 | 1.21.6 – 1.21.8 | NeoForge / Forge / Fabric | 3.12.0.5 | 更新 Center UI、字体与模糊控制，新增 Arc3D 引导参数。
 | 1.21.4 | NeoForge / Forge / Fabric | 3.12.0.3 | 与 3.12.0.5 基本一致，去除 1.21.8 特定改动。
 | 1.21 – 1.21.1 | NeoForge / Forge / Fabric | 3.12.0.2 | 焕新文字引擎，支持无阴影渲染与乱码修复。
@@ -113,7 +113,7 @@ The current release line is **3.12.0.x** powered by ModernUI **3.12.0**. Pick th
 
 | Minecraft | Loader(s) | ModernUI-MC Version | Notes |
 | --- | --- | --- | --- |
-| 1.21.10 | NeoForge / Forge / Fabric | 3.12.0.5 | First port to 1.21.10 with the new input/audio/font APIs and loader bumps (Forge 60.0.17, NeoForge 21.10.49-beta). |
+| 1.21.10 | NeoForge / Forge / Fabric | 3.12.0.6 | Restores scrolling/dragging for vanilla lists such as Key Bindings on 1.21.10 while keeping every 3.12.0.5 change. |
 | 1.21.6 – 1.21.8 | NeoForge / Forge / Fabric | 3.12.0.5 | Includes the reworked Center UI, new blur defaults, updated fonts, and Arc3D bootstrap toggles. |
 | 1.21.4 | NeoForge / Forge / Fabric | 3.12.0.3 | Feature parity with 3.12.0.5 minus the 1.21.8-specific hooks. |
 | 1.21 – 1.21.1 | NeoForge / Forge / Fabric | 3.12.0.2 | Uses the refreshed text engine, no-shadow rendering, and obfuscated text fixes. |

@@ -1,6 +1,16 @@
 # Changelog
 All notable updates to Modern UI for Minecraft are tracked here. The current release line is ModernUI **3.12.0.x**.
 
+## Modern UI 3.12.0.6
+### Key Binding & list scrolling hotfix
+- Fixed vanilla selection lists (Key Bindings, Accessibility, etc.) being locked in place on 1.21.10 when using ModernUI's smooth scrolling mixin. We now re-run `repositionEntries()` whenever the scroll amount changes so mouse wheels and scrollbar drags advance the list again.
+
+**Minecraft targets**
+
+| Minecraft | Previous release | Upgrade to |
+| --- | --- | --- |
+| 1.21.10 | 3.12.0.5 | 3.12.0.6 |
+
 ## Modern UI 3.12.0.5 (3.12.0.4, 3.12.0.3, 3.12.0.2, 3.12.0.1)
 ### Minecraft 1.21.10 refresh
 - Ported the entire stack to Minecraft 1.21.10, including Forge 60.0.17 and NeoForge 21.10.49-beta, and refreshed the Fabric metadata to match the new protocol.
