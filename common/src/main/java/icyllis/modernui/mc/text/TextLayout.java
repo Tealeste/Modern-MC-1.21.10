@@ -23,7 +23,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import icyllis.modernui.graphics.MathUtil;
 import icyllis.modernui.graphics.text.Font;
 import icyllis.modernui.util.SparseArray;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.PlayerSkinRenderCache;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nonnull;
@@ -50,7 +54,7 @@ public class TextLayout {
      * This singleton cannot be inserted into the cache!
      */
     public static final TextLayout EMPTY = new TextLayout(new char[0], new int[0], new float[0],
-            null, new Font[0], new float[0], new int[0], new int[]{0}, 0, false, false, 2, ~0) {
+            null, new Font[0], new float[0], new int[0], new int[]{0}, null, 0, false, false, 2, ~0) {
         @Nonnull
         @Override
         TextLayout get() {
@@ -113,6 +117,7 @@ public class TextLayout {
 
     private final byte[] mFontIndices;
     private final Font[] mFonts;
+    private final InlineObject[] mInlineObjects;
 
     /**
      * The length and order are relative to the raw string (with formatting codes).
@@ -184,6 +189,7 @@ public class TextLayout {
         mPositions = layout.mPositions;
         mFontIndices = layout.mFontIndices;
         mFonts = layout.mFonts;
+        mInlineObjects = layout.mInlineObjects;
         mAdvances = layout.mAdvances;
         mGlyphFlags = layout.mGlyphFlags;
         mLineBoundaries = layout.mLineBoundaries;
@@ -198,6 +204,7 @@ public class TextLayout {
                @Nonnull float[] positions, @Nullable byte[] fontIndices,
                @Nonnull Font[] fonts, @Nullable float[] advances,
                @Nonnull int[] glyphFlags, @Nullable int[] lineBoundaries,
+               @Nullable InlineObject[] inlineObjects,
                float totalAdvance, boolean hasEffect, boolean hasColorEmoji,
                int createdResLevel, int computedFlags) {
         mTextBuf = textBuf;
@@ -205,6 +212,7 @@ public class TextLayout {
         mPositions = positions;
         mFontIndices = fontIndices;
         mFonts = fonts;
+        mInlineObjects = inlineObjects;
         mAdvances = advances;
         mGlyphFlags = glyphFlags;
         mLineBoundaries = lineBoundaries;
@@ -255,6 +263,10 @@ public class TextLayout {
         GlyphManager glyphManager = GlyphManager.getInstance();
         GLBakedGlyph[] glyphs = new GLBakedGlyph[mGlyphs.length];
         for (int i = 0; i < glyphs.length; i++) {
+            if (mInlineObjects != null && mInlineObjects.length > i && mInlineObjects[i] != null) {
+                glyphs[i] = null;
+                continue;
+            }
             if ((mGlyphFlags[i] & CharacterStyle.OBFUSCATED_MASK) != 0) {
                 glyphs[i] = glyphManager.lookupFastChars(
                         getFont(i),
@@ -367,6 +379,7 @@ public class TextLayout {
         //final boolean alignPixels = TextLayoutProcessor.sAlignPixels;
 
         final float baseline = top + sBaselineOffset;
+        final Minecraft minecraft = Minecraft.getInstance();
 
         GpuTextureView prevTexture = null;
         int prevMode = -1;
@@ -391,11 +404,80 @@ public class TextLayout {
         }
 
         for (int i = 0, e = glyphs.length; i < e; i++) {
+            InlineObject inlineObject = mInlineObjects != null && mInlineObjects.length > i ? mInlineObjects[i] : null;
             var glyph = glyphs[i];
+            final int bits = flags[i];
+            if ((bits & CharacterStyle.NO_SHADOW_MASK) != 0 && isShadow) {
+                continue;
+            }
+            if (inlineObject != null) {
+                GpuTextureView texture = null;
+                TextureAtlasSprite sprite = null;
+                PlayerSkinRenderCache.RenderInfo playerInfo = null;
+                if (inlineObject.type() == InlineObject.Type.ATLAS) {
+                    TextureAtlas atlas = minecraft.getAtlasManager().getAtlasOrThrow(inlineObject.atlasId());
+                    sprite = atlas.getSprite(inlineObject.spriteId());
+                    texture = atlas.getTextureView();
+                } else if (inlineObject.type() == InlineObject.Type.PLAYER) {
+                    playerInfo = minecraft.playerSkinRenderCache().getOrDefault(inlineObject.profile());
+                    texture = playerInfo.textureView();
+                }
+                if (texture == null) {
+                    continue;
+                }
+                int mode = seeThrough ? preferredMode : TextRenderType.MODE_NORMAL;
+                net.minecraft.client.gui.Font.DisplayMode vanillaDisplayMode = seeThrough
+                        ? net.minecraft.client.gui.Font.DisplayMode.SEE_THROUGH
+                        : net.minecraft.client.gui.Font.DisplayMode.NORMAL;
+                if (polygonOffset) {
+                    vanillaDisplayMode = net.minecraft.client.gui.Font.DisplayMode.POLYGON_OFFSET;
+                }
+                if (builder == null || prevTexture != texture || prevMode != mode || prevVanillaDisplayMode != vanillaDisplayMode) {
+                    prevTexture = texture;
+                    prevMode = mode;
+                    prevVanillaDisplayMode = vanillaDisplayMode;
+                    builder = source.getBuffer(TextRenderType.getOrCreate(texture, vanillaDisplayMode, true));
+                }
+                float rx = x + positions[i << 1];
+                float ry = baseline + positions[i << 1 | 1] + InlineObject.TOP_OFFSET;
+                if (isShadow) {
+                    rx += 1.0f - shadowOffset;
+                    ry += 1.0f - shadowOffset;
+                }
+                int cr;
+                int cg;
+                int cb;
+                if ((bits & CharacterStyle.IMPLICIT_COLOR_MASK) != 0) {
+                    cr = startR;
+                    cg = startG;
+                    cb = startB;
+                } else {
+                    cr = bits >> 16 & 0xff;
+                    cg = bits >> 8 & 0xff;
+                    cb = bits & 0xff;
+                    if (isShadow) {
+                        cr >>= 2;
+                        cg >>= 2;
+                        cb >>= 2;
+                    }
+                }
+                if (inlineObject.type() == InlineObject.Type.ATLAS && sprite != null) {
+                    emitQuad(builder, matrix, rx, ry, InlineObject.WIDTH, InlineObject.HEIGHT,
+                            cr, cg, cb, a, packedLight, sprite.getU0(), sprite.getV0(), sprite.getU1(), sprite.getV1());
+                } else if (inlineObject.type() == InlineObject.Type.PLAYER && playerInfo != null) {
+                    final float inv = 1f / 64f;
+                    emitQuad(builder, matrix, rx, ry, InlineObject.WIDTH, InlineObject.HEIGHT,
+                            cr, cg, cb, a, packedLight, 8 * inv, 8 * inv, 16 * inv, 16 * inv);
+                    if (inlineObject.showHat()) {
+                        emitQuad(builder, matrix, rx, ry, InlineObject.WIDTH, InlineObject.HEIGHT,
+                                cr, cg, cb, a, packedLight, 40 * inv, 8 * inv, 48 * inv, 16 * inv);
+                    }
+                }
+                continue;
+            }
             if (glyph == null) {
                 continue;
             }
-            final int bits = flags[i];
             float rx;
             float ry;
             final float w;
@@ -407,9 +489,6 @@ public class TextLayout {
             net.minecraft.client.gui.Font.DisplayMode vanillaDisplayMode = null;
             boolean isBitmapFont = false;
             boolean isColorEmoji = false;
-            if ((bits & CharacterStyle.NO_SHADOW_MASK) != 0 && isShadow) {
-                continue;
-            }
             if ((bits & CharacterStyle.OBFUSCATED_MASK) != 0) {
                 var chars = (GlyphManager.FastCharSet) glyph;
                 int fastIndex = RANDOM.nextInt(chars.glyphs.size());
@@ -555,6 +634,28 @@ public class TextLayout {
         }
 
         return mTotalAdvance;
+    }
+
+    private static void emitQuad(VertexConsumer builder, Matrix4f matrix,
+                                 float x0, float y0, float width, float height,
+                                 int r, int g, int b, int a, int packedLight,
+                                 float u0, float v0, float u1, float v1) {
+        builder.addVertex(matrix, x0, y0, 0)
+                .setColor(r, g, b, a)
+                .setUv(u0, v0)
+                .setLight(packedLight);
+        builder.addVertex(matrix, x0, y0 + height, 0)
+                .setColor(r, g, b, a)
+                .setUv(u0, v1)
+                .setLight(packedLight);
+        builder.addVertex(matrix, x0 + width, y0 + height, 0)
+                .setColor(r, g, b, a)
+                .setUv(u1, v1)
+                .setLight(packedLight);
+        builder.addVertex(matrix, x0 + width, y0, 0)
+                .setColor(r, g, b, a)
+                .setUv(u1, v0)
+                .setLight(packedLight);
     }
 
     /**

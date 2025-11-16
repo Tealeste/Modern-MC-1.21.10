@@ -24,7 +24,6 @@ import com.ibm.icu.text.BreakIterator;
 import icyllis.modernui.ModernUI;
 import icyllis.modernui.graphics.text.*;
 import icyllis.modernui.mc.ModernUIMod;
-import icyllis.modernui.mc.text.FontDescriptions;
 import icyllis.modernui.mc.text.mixin.MixinBidiReorder;
 import icyllis.modernui.mc.text.mixin.MixinClientLanguage;
 import icyllis.modernui.mc.text.mixin.MixinLanguage;
@@ -32,7 +31,10 @@ import icyllis.modernui.text.TextDirectionHeuristic;
 import icyllis.modernui.text.TextDirectionHeuristics;
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -128,6 +130,7 @@ public class TextLayoutProcessor {
         mFontVec.add(font);
         return (byte) mFontMap.size();
     };
+    private byte mDefaultFontIndex = -1;
     /**
      * Position x1 y1 x2 y2... relative to the same point, for rendering glyphs.
      * These values are not offset to glyph additional baseline but aligned.
@@ -176,6 +179,8 @@ public class TextLayoutProcessor {
      */
     private final IntArrayList mLineBoundaries = new IntArrayList();
 
+    private final Int2ObjectOpenHashMap<InlineObject> mInlineObjects = new Int2ObjectOpenHashMap<>();
+
     /*
      * List of all processing glyphs
      */
@@ -202,6 +207,7 @@ public class TextLayoutProcessor {
      * The total advance (horizontal width) of the processing text
      */
     private float mTotalAdvance;
+    private float mResLevel;
 
     private final FontPaint mFontPaint = new FontPaint();
 
@@ -407,6 +413,8 @@ public class TextLayoutProcessor {
         mGlyphFlags.clear();
         mLineBoundaries.clear();
         mTotalAdvance = 0;
+        mInlineObjects.clear();
+        mDefaultFontIndex = -1;
         mHasEffect = false;
         //mHasFastDigit = false;
         mHasColorEmoji = false;
@@ -543,6 +551,7 @@ public class TextLayoutProcessor {
      */
     @Nonnull
     private TextLayout createNewLayout(int resLevel, int computeFlags) {
+        mResLevel = resLevel;
         if (!mBuilder.isEmpty()) {
             // locale for GCB (grapheme cluster break)
             mFontPaint.setLocale(ModernUI.getSelectedLocale());
@@ -598,11 +607,20 @@ public class TextLayoutProcessor {
                 lineBoundaries = null;
             }
             mTotalAdvance /= resLevel;
+            InlineObject[] inlineObjects;
+            if (!mInlineObjects.isEmpty()) {
+                InlineObject[] tmp = new InlineObject[mGlyphs.size()];
+                mInlineObjects.forEach((idx, object) -> tmp[idx] = object);
+                inlineObjects = tmp;
+            } else {
+                inlineObjects = null;
+            }
             return new TextLayout(textBuf, mGlyphs.toIntArray(),
                     positions, fontIndices,
                     mFontVec.toArray(new Font[0]),
                     advances, mGlyphFlags.toIntArray(),
-                    lineBoundaries, mTotalAdvance,
+                    lineBoundaries, inlineObjects,
+                    mTotalAdvance,
                     mHasEffect, mHasColorEmoji, resLevel, computeFlags);
         }
         return TextLayout.makeEmpty();
@@ -814,6 +832,11 @@ public class TextLayoutProcessor {
      */
     private void handleStyleRun(@Nonnull char[] text, int start, int limit, boolean isRtl,
                                 int styleFlags, ResourceLocation fontName) {
+        FontDescription special = FontDescriptions.getSpecialFont(fontName);
+        if (special != null) {
+            handleInlineObjectRun(text, start, limit, isRtl, styleFlags, special);
+            return;
+        }
         /*if (fastDigit) {
          *//*
          * Convert all digits in the string to a '0' before layout to ensure that any glyphs replaced on the fly
@@ -942,6 +965,69 @@ public class TextLayoutProcessor {
                 prevPos = currPos;
             }
         }
+    }
+
+    private byte getDefaultFontIndex() {
+        if (mDefaultFontIndex != -1) {
+            return mDefaultFontIndex;
+        }
+        FontCollection collection = mEngine.getFontCollection(Minecraft.DEFAULT_FONT);
+        Font font = collection.getFamilies().get(0).getClosestMatch(FontPaint.NORMAL);
+        mDefaultFontIndex = mFontMap.computeIfAbsent(font, mNextID);
+        return mDefaultFontIndex;
+    }
+
+    private void handleInlineObjectRun(@Nonnull char[] text, int start, int limit, boolean isRtl,
+                                       int styleFlags, @Nonnull FontDescription description) {
+        InlineObject baseObject;
+        if (description instanceof FontDescription.AtlasSprite atlasSprite) {
+            baseObject = InlineObject.atlas(atlasSprite.atlasId(), atlasSprite.spriteId());
+        } else if (description instanceof FontDescription.PlayerSprite playerSprite) {
+            baseObject = InlineObject.player(playerSprite.profile(), playerSprite.hat());
+        } else {
+            handleStyleRun(text, start, limit, isRtl, styleFlags, Minecraft.DEFAULT_FONT);
+            return;
+        }
+
+        final byte fontIdx = getDefaultFontIndex();
+        final boolean hasEffect = (styleFlags & CharacterStyle.EFFECT_MASK) != 0;
+        final float glyphAdvance = InlineObject.WIDTH * mResLevel;
+
+        if (isRtl) {
+            for (int index = limit - 1; index >= start; index--) {
+                if (!Character.isLowSurrogate(text[index])) {
+                    appendInlineGlyph(index, styleFlags, baseObject, fontIdx, hasEffect, glyphAdvance);
+                }
+            }
+        } else {
+            for (int index = start; index < limit; index++) {
+                if (!Character.isLowSurrogate(text[index])) {
+                    appendInlineGlyph(index, styleFlags, baseObject, fontIdx, hasEffect, glyphAdvance);
+                }
+            }
+        }
+
+        if (mComputeLineBoundaries) {
+            for (int i = start; i < limit; i++) {
+                mLineBoundaries.add(i + 1);
+            }
+        }
+    }
+
+    private void appendInlineGlyph(int charIndex, int styleFlags, InlineObject object,
+                                   byte fontIdx, boolean hasEffect, float glyphAdvance) {
+        int glyphIndex = mGlyphs.size();
+        mGlyphs.add(0);
+        mFontIndices.add(fontIdx);
+        mGlyphFlags.add(styleFlags);
+        mInlineObjects.put(glyphIndex, object);
+        mPositions.add(mTotalAdvance);
+        mPositions.add(0);
+        if (mComputeAdvances) {
+            mAdvances.set(charIndex, glyphAdvance);
+        }
+        mHasEffect |= hasEffect;
+        mTotalAdvance += glyphAdvance;
     }
 
     /*
