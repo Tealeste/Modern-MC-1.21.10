@@ -146,7 +146,16 @@ public abstract class MixinEditBox extends AbstractWidget {
     @Unique
     private void modernUI_MC$ensureFormatter() {
         if (!formatters.contains(modernUI_MC$textWrapperFormatter)) {
-            formatters.add(0, modernUI_MC$textWrapperFormatter);
+            formatters.add(modernUI_MC$textWrapperFormatter);
+        } else {
+            modernUI_MC$moveFormatterToEnd();
+        }
+    }
+
+    @Unique
+    private void modernUI_MC$moveFormatterToEnd() {
+        if (formatters.remove(modernUI_MC$textWrapperFormatter)) {
+            formatters.add(modernUI_MC$textWrapperFormatter);
         }
     }
 
@@ -155,6 +164,11 @@ public abstract class MixinEditBox extends AbstractWidget {
 
     @Shadow
     protected abstract int getMaxLength();
+
+    @Inject(method = "addFormatter", at = @At("RETURN"))
+    private void modernUI_MC$relayoutFormatters(EditBox.TextFormatter formatter, CallbackInfo ci) {
+        modernUI_MC$moveFormatterToEnd();
+    }
 
     /**
      * @author BloCamLimb

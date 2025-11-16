@@ -1,6 +1,16 @@
 # Changelog
 All notable updates to Modern UI for Minecraft are tracked here. The current release line is ModernUI **3.12.0.x**.
 
+## Modern UI 3.12.0.8
+### Text formatter ordering fix
+- Ensures the ModernUI text wrapper formatter is anchored to the end of the formatter list and moved there whenever new formatters are added, preventing other formatters from being pushed behind it in `EditBox` and restoring the expected rendering order.
+
+**Minecraft targets**
+
+| Minecraft | Previous release | Upgrade to |
+| --- | --- | --- |
+| 1.21.10 | 3.12.0.7 | 3.12.0.8 |
+
 ## Modern UI 3.12.0.7
 ### Command key parity on macOS
 - ModernUI now treats the macOS Command key as Control across the loader bridge so shortcut combos, zoom gestures, and scrolling modifiers work again even when Apple keyboards lack a physical Ctrl key.
