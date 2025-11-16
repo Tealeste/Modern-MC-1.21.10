@@ -1,6 +1,16 @@
 # Changelog
 All notable updates to Modern UI for Minecraft are tracked here. The current release line is ModernUI **3.12.0.x**.
 
+## Modern UI 3.12.0.7
+### Command key parity on macOS
+- ModernUI now treats the macOS Command key as Control across the loader bridge so shortcut combos, zoom gestures, and scrolling modifiers work again even when Apple keyboards lack a physical Ctrl key.
+
+**Minecraft targets**
+
+| Minecraft | Previous release | Upgrade to |
+| --- | --- | --- |
+| 1.21.10 | 3.12.0.6 | 3.12.0.7 |
+
 ## Modern UI 3.12.0.6
 ### Key Binding & list scrolling hotfix
 - Fixed vanilla selection lists (Key Bindings, Accessibility, etc.) being locked in place on 1.21.10 when using ModernUI's smooth scrolling mixin. We now re-run `repositionEntries()` whenever the scroll amount changes so mouse wheels and scrollbar drags advance the list again.
